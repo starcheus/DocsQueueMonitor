@@ -501,20 +501,31 @@ async def _send_status(message: Message, session: AsyncSession, user_id: int, la
     await message.answer("\n".join(lines).strip())
 
 
+def _status_icon(status: LocationStatus) -> str:
+    if status in {LocationStatus.AVAILABLE, LocationStatus.POSSIBLY_AVAILABLE}:
+        return "✅"
+    if status == LocationStatus.NO_SLOTS:
+        return "❌"
+    if status == LocationStatus.ERROR:
+        return "⚠️"
+    return "❓"
+
+
 def _format_status_item(lang: str, location: Location) -> str:
-    status_key = f"status.{LocationStatus(location.current_status).value}"
+    status = LocationStatus(location.current_status)
+    status_key = f"status.{status.value}"
     checked = format_user_datetime(location.last_checked_at, lang=lang)
     available = format_user_datetime(location.last_available_at, lang=lang)
-    book_link = (
-        f'<a href="{escape(location.queue_url, quote=True)}">'
-        f"{escape(t(lang, 'status.book_link'))}</a>"
+    label = escape(t(lang, status_key))
+    status_link = (
+        f'{_status_icon(status)} <a href="{escape(location.queue_url, quote=True)}">'
+        f"{label}</a>"
     )
     return t(
         lang,
         "status.item",
         city=escape(location.display_name),
-        status=escape(t(lang, status_key)),
+        status=status_link,
         checked=escape(checked),
         available=escape(available),
-        book_link=book_link,
     )

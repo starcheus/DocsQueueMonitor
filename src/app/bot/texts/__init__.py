@@ -63,15 +63,13 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "status.item": (
             "{city}: {status}\n"
             "Перевірено: {checked}\n"
-            "Останні місця: {available}\n"
-            "{book_link}"
+            "Останні місця: {available}"
         ),
-        "status.book_link": "Записатися / перевірити місця",
         "status.empty": "Спочатку підпишіться на міста.",
         "status.unknown": "невідомо",
         "status.no_slots": "місць немає",
         "status.possibly_available": "ймовірно є місця",
-        "status.available": "можливі вільні місця",
+        "status.available": "вільні місця",
         "status.error": "помилка перевірки",
         "status.disabled": "вимкнено",
         "notify.slots_available": (
@@ -144,15 +142,13 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "status.item": (
             "{city}: {status}\n"
             "Проверено: {checked}\n"
-            "Последние места: {available}\n"
-            "{book_link}"
+            "Последние места: {available}"
         ),
-        "status.book_link": "Записаться / проверить места",
         "status.empty": "Сначала подпишитесь на города.",
         "status.unknown": "неизвестно",
         "status.no_slots": "мест нет",
         "status.possibly_available": "вероятно есть места",
-        "status.available": "возможны свободные места",
+        "status.available": "свободные места",
         "status.error": "ошибка проверки",
         "status.disabled": "отключено",
         "notify.slots_available": (
@@ -225,15 +221,13 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "status.item": (
             "{city}: {status}\n"
             "Checked: {checked}\n"
-            "Last available: {available}\n"
-            "{book_link}"
+            "Last available: {available}"
         ),
-        "status.book_link": "Book / check slots",
         "status.empty": "Subscribe to cities first.",
         "status.unknown": "unknown",
         "status.no_slots": "no slots",
         "status.possibly_available": "possibly available",
-        "status.available": "possibly free slots",
+        "status.available": "free slots",
         "status.error": "check error",
         "status.disabled": "disabled",
         "notify.slots_available": (

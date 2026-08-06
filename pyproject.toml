@@ -1,6 +1,6 @@
 [project]
 name = "docsqueuemonitor"
-version = "0.2.1"
+version = "0.2.2"
 description = "Telegram bot that monitors DP Dokument foreign e-queue availability and notifies subscribers."
 readme = "README.md"
 requires-python = ">=3.12"
