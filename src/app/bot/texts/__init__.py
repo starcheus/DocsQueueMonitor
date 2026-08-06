@@ -60,7 +60,13 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "subs.confirm_no": "Скасувати",
         "subs.all_removed": "Усі підписки вимкнено.",
         "status.title": "Статус обраних міст:",
-        "status.item": ("{city}: {status}\nПеревірено: {checked}\nОстанні місця: {available}"),
+        "status.item": (
+            "{city}: {status}\n"
+            "Перевірено: {checked}\n"
+            "Останні місця: {available}\n"
+            "{book_link}"
+        ),
+        "status.book_link": "Записатися / перевірити місця",
         "status.empty": "Спочатку підпишіться на міста.",
         "status.unknown": "невідомо",
         "status.no_slots": "місць немає",
@@ -135,7 +141,13 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "subs.confirm_no": "Отмена",
         "subs.all_removed": "Все подписки отключены.",
         "status.title": "Статус выбранных городов:",
-        "status.item": ("{city}: {status}\nПроверено: {checked}\nПоследние места: {available}"),
+        "status.item": (
+            "{city}: {status}\n"
+            "Проверено: {checked}\n"
+            "Последние места: {available}\n"
+            "{book_link}"
+        ),
+        "status.book_link": "Записаться / проверить места",
         "status.empty": "Сначала подпишитесь на города.",
         "status.unknown": "неизвестно",
         "status.no_slots": "мест нет",
@@ -210,7 +222,13 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "subs.confirm_no": "Cancel",
         "subs.all_removed": "All subscriptions disabled.",
         "status.title": "Status of your cities:",
-        "status.item": ("{city}: {status}\nChecked: {checked}\nLast available: {available}"),
+        "status.item": (
+            "{city}: {status}\n"
+            "Checked: {checked}\n"
+            "Last available: {available}\n"
+            "{book_link}"
+        ),
+        "status.book_link": "Book / check slots",
         "status.empty": "Subscribe to cities first.",
         "status.unknown": "unknown",
         "status.no_slots": "no slots",

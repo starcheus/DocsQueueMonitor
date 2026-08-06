@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from html import escape
+
 from aiogram import F, Router
 from aiogram.filters import CommandStart
 from aiogram.types import CallbackQuery, Message
@@ -503,11 +505,16 @@ def _format_status_item(lang: str, location: Location) -> str:
     status_key = f"status.{LocationStatus(location.current_status).value}"
     checked = format_user_datetime(location.last_checked_at, lang=lang)
     available = format_user_datetime(location.last_available_at, lang=lang)
+    book_link = (
+        f'<a href="{escape(location.queue_url, quote=True)}">'
+        f"{escape(t(lang, 'status.book_link'))}</a>"
+    )
     return t(
         lang,
         "status.item",
-        city=location.display_name,
-        status=t(lang, status_key),
-        checked=checked,
-        available=available,
+        city=escape(location.display_name),
+        status=escape(t(lang, status_key)),
+        checked=escape(checked),
+        available=escape(available),
+        book_link=book_link,
     )
