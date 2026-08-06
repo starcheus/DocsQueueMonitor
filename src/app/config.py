@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     monitoring_enabled: bool = Field(default=True, alias="MONITORING_ENABLED")
     monitoring_interval_seconds: int = Field(default=90, alias="MONITORING_INTERVAL_SECONDS", ge=15)
     monitoring_jitter_seconds: int = Field(default=30, alias="MONITORING_JITTER_SECONDS", ge=0)
-    availability_confirmations: int = Field(default=2, alias="AVAILABILITY_CONFIRMATIONS", ge=1)
+    availability_confirmations: int = Field(default=1, alias="AVAILABILITY_CONFIRMATIONS", ge=1)
     request_timeout_seconds: float = Field(default=45.0, alias="REQUEST_TIMEOUT_SECONDS", gt=0)
     max_concurrent_checks: int = Field(default=2, alias="MAX_CONCURRENT_CHECKS", ge=1)
     notification_cooldown_seconds: int = Field(

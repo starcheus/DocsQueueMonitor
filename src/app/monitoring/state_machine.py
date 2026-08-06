@@ -28,7 +28,7 @@ _AVAILABILITY_OUTCOMES = {
 
 
 class AvailabilityStateMachine:
-    def __init__(self, *, availability_confirmations: int = 2) -> None:
+    def __init__(self, *, availability_confirmations: int = 1) -> None:
         if availability_confirmations < 1:
             raise ValueError("availability_confirmations must be >= 1")
         self._confirmations = availability_confirmations
