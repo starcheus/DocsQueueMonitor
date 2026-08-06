@@ -16,4 +16,4 @@ class AppContext:
     monitoring: MonitoringService
     notifications: NotificationService
     runtime: MonitoringRuntimeState
-    developer_contact: str = "@proigor"
+    developer_contact: str = "@cryptoaiexchange"

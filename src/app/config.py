@@ -42,13 +42,14 @@ class Settings(BaseSettings):
     telegram_send_concurrency: int = Field(default=5, alias="TELEGRAM_SEND_CONCURRENCY", ge=1)
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
     log_format: str = Field(default="json", alias="LOG_FORMAT")
-    data_retention_days: int = Field(default=90, alias="DATA_RETENTION_DAYS", ge=1)
+    # 0 = keep check/notification history indefinitely (no time-based purge).
+    data_retention_days: int = Field(default=0, alias="DATA_RETENTION_DAYS", ge=0)
     healthcheck_port: int = Field(default=8080, alias="HEALTHCHECK_PORT", ge=1, le=65535)
     playwright_enabled: bool = Field(default=True, alias="PLAYWRIGHT_ENABLED")
     user_agent: str = Field(
         default=(
-            "DocsQueueMonitor/0.1 (+https://github.com/docsqueuemonitor/DocsQueueMonitor; "
-            "monitoring-only; no-booking)"
+            "Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
         ),
         alias="USER_AGENT",
     )

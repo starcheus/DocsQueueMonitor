@@ -80,3 +80,26 @@ async def test_subscribe_unknown_location(seeded_session: AsyncSession) -> None:
     )
     with pytest.raises(NotFoundError):
         await service.subscribe(user_id=user.id, location_slug="toronto")
+
+
+@pytest.mark.asyncio
+async def test_ensure_user_preserves_language(seeded_session: AsyncSession) -> None:
+    service = SubscriptionService(seeded_session)
+    user = await service.ensure_user(
+        telegram_id=4004,
+        username="a",
+        first_name="A",
+        language_code="ru",
+    )
+    assert user.language_code == "ru"
+
+    again = await service.ensure_user(
+        telegram_id=4004,
+        username="a",
+        first_name="A",
+        language_code="uk",
+    )
+    assert again.language_code == "ru"
+
+    updated = await service.set_language(telegram_id=4004, language_code="en")
+    assert updated.language_code == "en"

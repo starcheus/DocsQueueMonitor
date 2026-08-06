@@ -109,7 +109,7 @@ async def run_bot() -> int:
         monitoring=monitoring,
         notifications=notifications,
         runtime=runtime,
-        developer_contact="@proigor",
+        developer_contact="@cryptoaiexchange",
     )
     dp["app"] = app_ctx
     dp.update.middleware(DbSessionMiddleware(session_factory))

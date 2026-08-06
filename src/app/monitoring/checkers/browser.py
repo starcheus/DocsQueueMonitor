@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from datetime import UTC, datetime
 from typing import Any
 
@@ -13,9 +14,27 @@ from app.monitoring.parsers.pasport_html import hash_normalized_html, parse_pasp
 
 log = get_logger(__name__)
 
+_CONTENT_READY_JS = """() => {
+  const body = document.body ? document.body.innerText : '';
+  const html = document.documentElement ? document.documentElement.innerHTML : '';
+  if (body.includes('Наразі всі місця зайняті')
+      || body.includes('все места заняты')
+      || body.includes('Оберіть послугу')
+      || body.includes('Выберите услугу')) {
+    return true;
+  }
+  if (document.querySelector('form[name="services"], form#services, #queue_form, #form_queue')) {
+    return true;
+  }
+  if (body.includes('Just a moment') || html.includes('cf-challenge-running')) {
+    return false;
+  }
+  return false;
+}"""
+
 
 class BrowserAvailabilityChecker:
-    """Fetch queue HTML via a real Chromium session (handles CF challenge)."""
+    """Fetch queue HTML via Chromium (handles CF challenge with a fresh context)."""
 
     def __init__(
         self,
@@ -31,7 +50,6 @@ class BrowserAvailabilityChecker:
         self._headless = headless
         self._playwright: Any | None = None
         self._browser: Any | None = None
-        self._context: Any | None = None
 
     async def start(self) -> None:
         if not self._enabled:
@@ -46,20 +64,11 @@ class BrowserAvailabilityChecker:
         self._playwright = await async_playwright().start()
         self._browser = await self._playwright.chromium.launch(
             headless=self._headless,
-            args=["--disable-dev-shm-usage"],
+            args=["--disable-dev-shm-usage", "--no-sandbox"],
         )
-        self._context = await self._browser.new_context(
-            user_agent=self._user_agent,
-            locale="uk-UA",
-            viewport={"width": 1280, "height": 720},
-        )
-        self._context.set_default_timeout(self._timeout_ms)
         log.info("browser_checker_started", headless=self._headless)
 
     async def stop(self) -> None:
-        if self._context is not None:
-            await self._context.close()
-            self._context = None
         if self._browser is not None:
             await self._browser.close()
             self._browser = None
@@ -67,6 +76,15 @@ class BrowserAvailabilityChecker:
             await self._playwright.stop()
             self._playwright = None
         log.info("browser_checker_stopped")
+
+    def _new_context(self) -> Any:
+        assert self._browser is not None
+        return self._browser.new_context(
+            user_agent=self._user_agent,
+            locale="uk-UA",
+            viewport={"width": 1280, "height": 720},
+            extra_http_headers={"Accept-Language": "uk-UA,uk;q=0.9,en;q=0.8"},
+        )
 
     async def check(self, location: Location) -> CheckResult:
         if not self._enabled:
@@ -77,7 +95,7 @@ class BrowserAvailabilityChecker:
                 checked_at=datetime.now(UTC),
                 details={"slug": location.slug},
             )
-        if self._context is None:
+        if self._browser is None:
             return CheckResult(
                 outcome=CheckOutcome.UNKNOWN,
                 checker_type=CheckerType.BROWSER,
@@ -87,25 +105,40 @@ class BrowserAvailabilityChecker:
             )
 
         started = datetime.now(UTC)
-        page = await self._context.new_page()
+        context = await self._new_context()
+        context.set_default_timeout(self._timeout_ms)
+        page = await context.new_page()
         try:
             response = await page.goto(
                 location.queue_url,
                 wait_until="domcontentloaded",
                 timeout=self._timeout_ms,
             )
-            # Allow CF JS challenge / Alpine hydrate a bit.
-            await page.wait_for_timeout(2500)
+            try:
+                await page.wait_for_function(
+                    _CONTENT_READY_JS,
+                    timeout=min(self._timeout_ms, 20000),
+                )
+            except Exception:
+                await page.wait_for_timeout(2500)
+
             html = await page.content()
             final_url = page.url
             status = response.status if response is not None else None
+            with contextlib.suppress(Exception):
+                nav_status = await page.evaluate(
+                    "() => performance.getEntriesByType('navigation')[0]"
+                    "?.responseStatus || null",
+                )
+                if nav_status is not None:
+                    status = nav_status
             elapsed_ms = int((datetime.now(UTC) - started).total_seconds() * 1000)
 
             outcome, reason = parse_pasport_queue_html(
                 html,
                 checker_config=location.checker_config or {},
             )
-            if status is not None and status >= 500:
+            if status is not None and int(status) >= 500:
                 outcome = CheckOutcome.SERVER_ERROR
                 reason = f"http_{status}:{reason}"
 
@@ -113,7 +146,7 @@ class BrowserAvailabilityChecker:
                 outcome=outcome,
                 checker_type=CheckerType.BROWSER,
                 reason=reason,
-                response_status=status,
+                response_status=int(status) if status is not None else None,
                 response_time_ms=elapsed_ms,
                 response_hash=hash_normalized_html(html),
                 final_url=final_url,
@@ -131,4 +164,4 @@ class BrowserAvailabilityChecker:
                 details={"slug": location.slug},
             )
         finally:
-            await page.close()
+            await context.close()

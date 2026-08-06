@@ -7,7 +7,7 @@ passport centers and notifies subscribers when slots may have appeared.
 
 ## Current MVP scope
 
-Active cities: **Prague, Warsaw, Berlin, Kraków**.
+Active cities: **Prague, Warsaw, Berlin, Kraków, Valencia**.
 
 Stack: Python 3.12, aiogram 3, SQLAlchemy 2, Alembic, Playwright (primary checker), SQLite.
 

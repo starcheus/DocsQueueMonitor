@@ -6,6 +6,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.bot.texts import t
+from app.bot.timefmt import format_user_datetime
 from app.database.models import Location
 from app.database.repositories import SubscriptionRepository
 from app.domain.enums import NotificationType
@@ -47,8 +48,10 @@ class NotificationService:
                 if not user.is_active or user.is_blocked:
                     continue
                 lang = user.language_code or "uk"
-                checked = (
-                    location.last_checked_at.strftime("%H:%M") if location.last_checked_at else "—"
+                checked = format_user_datetime(
+                    location.last_checked_at,
+                    lang=lang,
+                    with_date=False,
                 )
                 text = t(
                     lang,

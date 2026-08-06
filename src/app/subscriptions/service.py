@@ -42,9 +42,19 @@ class SubscriptionService:
 
         user.username = username
         user.first_name = first_name
-        user.language_code = language_code
+        # Keep the language the user picked in the bot; Telegram client locale
+        # must not overwrite it on every Back / menu tap.
         user.last_interaction_at = now
         user.is_active = True
+        await self._session.flush()
+        return user
+
+    async def set_language(self, *, telegram_id: int, language_code: str) -> User:
+        user = await self._users.get_by_telegram_id(telegram_id)
+        if user is None:
+            raise NotFoundError(f"user not found: {telegram_id}")
+        user.language_code = language_code
+        user.last_interaction_at = datetime.now(UTC)
         await self._session.flush()
         return user
 

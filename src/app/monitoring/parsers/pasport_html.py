@@ -44,12 +44,30 @@ def parse_pasport_queue_html(
         "just a moment",
         "attention required",
     ]
-    for marker in captcha_markers:
-        if marker.lower() in lower or marker.lower() in text.lower():
-            # Cloudflare interstitial before real content.
-            if "наразі всі місця зайняті" in text.lower():
-                break
-            if "just a moment" in lower or "cf-challenge" in lower:
+    # Only treat as challenge if the page looks like a CF interstitial, not when
+    # Cloudflare script crumbs appear alongside the real queue form.
+    has_queue_signal = any(
+        marker in text.lower()
+        for marker in (
+            "наразі всі місця зайняті",
+            "все места заняты",
+            "оберіть послугу",
+            "выберите услугу",
+        )
+    ) or any(
+        token in lower
+        for token in ('name="services"', "form_queue", 'id="queue_form"', 'id="countries_phone"')
+    )
+    if not has_queue_signal:
+        challenge_bits = (
+            "just a moment" in lower
+            or "cf-challenge" in lower
+            or "challenge-platform" in lower
+        )
+        for marker in captcha_markers:
+            if challenge_bits and (
+                marker.lower() in lower or marker.lower() in text.lower()
+            ):
                 return CheckOutcome.CAPTCHA, f"captcha_or_challenge:{marker}"
 
     no_slots_markers = config.get("no_slots_markers") or [

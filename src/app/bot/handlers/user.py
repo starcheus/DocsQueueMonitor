@@ -21,6 +21,7 @@ from app.bot.keyboards import (
     subscriptions_keyboard,
 )
 from app.bot.texts import resolve_language, t
+from app.bot.timefmt import format_user_datetime
 from app.database.models import Country, Location
 from app.domain.enums import LocationStatus
 from app.subscriptions.service import SubscriptionService
@@ -63,14 +64,13 @@ async def on_language(callback: CallbackQuery, session: AsyncSession, app: AppCo
         await callback.answer()
         return
     service = SubscriptionService(session)
-    user = await service.ensure_user(
+    await service.ensure_user(
         telegram_id=callback.from_user.id,
         username=callback.from_user.username,
         first_name=callback.from_user.first_name,
         language_code=lang,
     )
-    user.language_code = lang
-    await session.flush()
+    await service.set_language(telegram_id=callback.from_user.id, language_code=lang)
     message = _callback_message(callback)
     if message is not None:
         await message.answer(
@@ -501,12 +501,8 @@ async def _send_status(message: Message, session: AsyncSession, user_id: int, la
 
 def _format_status_item(lang: str, location: Location) -> str:
     status_key = f"status.{LocationStatus(location.current_status).value}"
-    checked = (
-        location.last_checked_at.strftime("%Y-%m-%d %H:%M") if location.last_checked_at else "—"
-    )
-    available = (
-        location.last_available_at.strftime("%Y-%m-%d %H:%M") if location.last_available_at else "—"
-    )
+    checked = format_user_datetime(location.last_checked_at, lang=lang)
+    available = format_user_datetime(location.last_available_at, lang=lang)
     return t(
         lang,
         "status.item",

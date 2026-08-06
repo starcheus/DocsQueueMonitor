@@ -1,7 +1,8 @@
 """Seed data for MVP locations.
 
-Sources verified on 2026-08-06 from official center selector on
-https://prague.pasport.org.ua/solutions/e-queue and related city subdomains.
+Sources verified from official center pages on *.pasport.org.ua
+(e.g. https://prague.pasport.org.ua/solutions/e-queue,
+https://valencia.pasport.org.ua/solutions/e-queue).
 """
 
 from __future__ import annotations
@@ -15,11 +16,12 @@ from app.database.models import Country, Location
 from app.domain.enums import CheckerType, LocationStatus
 from app.locations.markers import DEFAULT_PASPORT_MARKERS
 
-# MVP: Prague + Warsaw + Berlin + Kraków (high-demand EU hubs).
+# MVP hubs: Prague, Warsaw, Berlin, Kraków, Valencia.
 MVP_COUNTRIES: list[dict[str, Any]] = [
     {"code": "CZ", "name": "Чехія", "sort_order": 10},
     {"code": "PL", "name": "Польща", "sort_order": 20},
     {"code": "DE", "name": "Німеччина", "sort_order": 30},
+    {"code": "ES", "name": "Іспанія", "sort_order": 40},
 ]
 
 MVP_LOCATIONS: list[dict[str, Any]] = [
@@ -64,6 +66,17 @@ MVP_LOCATIONS: list[dict[str, Any]] = [
         "timezone": "Europe/Warsaw",
         "official_url": "https://krakow.pasport.org.ua/",
         "queue_url": "https://krakow.pasport.org.ua/solutions/e-queue",
+        "is_active": True,
+        "checker_type": CheckerType.BROWSER.value,
+    },
+    {
+        "country_code": "ES",
+        "slug": "valencia",
+        "city": "Valencia",
+        "display_name": "Валенсія",
+        "timezone": "Europe/Madrid",
+        "official_url": "https://valencia.pasport.org.ua/",
+        "queue_url": "https://valencia.pasport.org.ua/solutions/e-queue",
         "is_active": True,
         "checker_type": CheckerType.BROWSER.value,
     },
