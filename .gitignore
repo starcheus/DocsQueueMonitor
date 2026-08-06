@@ -1,0 +1,49 @@
+# Bytecode / build
+__pycache__/
+*.py[cod]
+*$py.class
+build/
+dist/
+wheels/
+*.egg-info/
+.eggs/
+*.egg
+
+# Virtualenvs / tooling
+.venv/
+.venv*/
+.python-version.local
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.cache/
+
+# Secrets & local runtime
+.env
+.env.*
+!.env.example
+data/*
+!data/.gitkeep
+logs/*
+!logs/.gitkeep
+*.db
+*.sqlite
+*.sqlite3
+
+# Playwright / browsers
+playwright/.cache/
+.playwright/
+
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Temp research artifacts
+/tmp/
+*.log
