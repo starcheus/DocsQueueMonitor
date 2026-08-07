@@ -38,6 +38,14 @@ class LocationRepository:
         )
         return list(result.scalars().all())
 
+    async def list_location_ids_with_active_subscribers(self) -> set[int]:
+        result = await self._session.execute(
+            select(Subscription.location_id)
+            .where(Subscription.is_active.is_(True))
+            .distinct(),
+        )
+        return {row[0] for row in result.all()}
+
     async def get_by_slug(self, slug: str) -> Location | None:
         result = await self._session.execute(
             select(Location).where(Location.slug == slug).options(selectinload(Location.country)),

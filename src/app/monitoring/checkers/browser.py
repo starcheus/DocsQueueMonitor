@@ -114,6 +114,18 @@ class BrowserAvailabilityChecker:
                 wait_until="domcontentloaded",
                 timeout=self._timeout_ms,
             )
+            status = response.status if response is not None else None
+            if status == 429:
+                elapsed_ms = int((datetime.now(UTC) - started).total_seconds() * 1000)
+                return CheckResult(
+                    outcome=CheckOutcome.PAGE_UNAVAILABLE,
+                    checker_type=CheckerType.BROWSER,
+                    reason="http_429_rate_limited",
+                    response_status=429,
+                    response_time_ms=elapsed_ms,
+                    final_url=page.url,
+                    checked_at=datetime.now(UTC),
+                )
             try:
                 await page.wait_for_function(
                     _CONTENT_READY_JS,
@@ -124,7 +136,6 @@ class BrowserAvailabilityChecker:
 
             html = await page.content()
             final_url = page.url
-            status = response.status if response is not None else None
             with contextlib.suppress(Exception):
                 nav_status = await page.evaluate(
                     "() => performance.getEntriesByType('navigation')[0]"
@@ -132,6 +143,17 @@ class BrowserAvailabilityChecker:
                 )
                 if nav_status is not None:
                     status = nav_status
+            if status == 429:
+                elapsed_ms = int((datetime.now(UTC) - started).total_seconds() * 1000)
+                return CheckResult(
+                    outcome=CheckOutcome.PAGE_UNAVAILABLE,
+                    checker_type=CheckerType.BROWSER,
+                    reason="http_429_rate_limited",
+                    response_status=429,
+                    response_time_ms=elapsed_ms,
+                    final_url=final_url,
+                    checked_at=datetime.now(UTC),
+                )
             elapsed_ms = int((datetime.now(UTC) - started).total_seconds() * 1000)
 
             outcome, reason = parse_pasport_queue_html(

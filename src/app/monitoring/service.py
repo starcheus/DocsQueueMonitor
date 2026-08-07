@@ -18,6 +18,26 @@ from app.monitoring.state_machine import AvailabilityStateMachine
 log = get_logger(__name__)
 
 
+def should_check_location(
+    *,
+    has_subscribers: bool,
+    last_checked_at: datetime | None,
+    now: datetime,
+    unsubscribed_interval_seconds: int,
+) -> bool:
+    """Subscribed cities every cycle; others at most once per idle interval."""
+    if has_subscribers:
+        return True
+    if last_checked_at is None:
+        return True
+    checked = (
+        last_checked_at
+        if last_checked_at.tzinfo is not None
+        else last_checked_at.replace(tzinfo=UTC)
+    )
+    return (now - checked).total_seconds() >= unsubscribed_interval_seconds
+
+
 class MonitoringService:
     def __init__(
         self,
@@ -128,10 +148,28 @@ class MonitoringService:
                 await self._on_admin_alert(location.id, decision.reason)  # type: ignore[operator]
 
     async def check_all_active(self) -> int:
+        now = datetime.now(UTC)
         async with self._session_factory() as session:
             repo = LocationRepository(session)
             locations = await repo.list_active()
-            ids = [loc.id for loc in locations]
+            subscribed = await repo.list_location_ids_with_active_subscribers()
+            idle = self._settings.unsubscribed_check_interval_seconds
+            ids = [
+                loc.id
+                for loc in locations
+                if should_check_location(
+                    has_subscribers=loc.id in subscribed,
+                    last_checked_at=loc.last_checked_at,
+                    now=now,
+                    unsubscribed_interval_seconds=idle,
+                )
+            ]
+            log.info(
+                "monitoring_cycle_plan",
+                total_active=len(locations),
+                to_check=len(ids),
+                subscribed=len(subscribed),
+            )
 
         for location_id in ids:
             await self.check_location(location_id)

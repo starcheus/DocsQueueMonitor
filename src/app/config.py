@@ -32,6 +32,12 @@ class Settings(BaseSettings):
     monitoring_interval_seconds: int = Field(default=90, alias="MONITORING_INTERVAL_SECONDS", ge=15)
     monitoring_jitter_seconds: int = Field(default=30, alias="MONITORING_JITTER_SECONDS", ge=0)
     availability_confirmations: int = Field(default=1, alias="AVAILABILITY_CONFIRMATIONS", ge=1)
+    # How often to probe cities with zero active subscribers (keep warm / detect CF).
+    unsubscribed_check_interval_seconds: int = Field(
+        default=3600,
+        alias="UNSUBSCRIBED_CHECK_INTERVAL_SECONDS",
+        ge=60,
+    )
     request_timeout_seconds: float = Field(default=45.0, alias="REQUEST_TIMEOUT_SECONDS", gt=0)
     max_concurrent_checks: int = Field(default=2, alias="MAX_CONCURRENT_CHECKS", ge=1)
     notification_cooldown_seconds: int = Field(
