@@ -27,8 +27,8 @@ def test_default_language_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
 async def test_seed_idempotent(db_session: AsyncSession) -> None:
     first = await seed_countries_and_locations(db_session)
     await db_session.commit()
-    assert first["locations_created"] == 6
-    assert first["countries_created"] == 4
+    assert first["locations_created"] == 7
+    assert first["countries_created"] == 5
 
     second = await seed_countries_and_locations(db_session)
     await db_session.commit()
@@ -37,6 +37,7 @@ async def test_seed_idempotent(db_session: AsyncSession) -> None:
     locations = (await db_session.scalars(select(Location).order_by(Location.slug))).all()
     assert [loc.slug for loc in locations] == [
         "berlin",
+        "bratislava",
         "gdansk",
         "krakow",
         "prague",
@@ -46,4 +47,4 @@ async def test_seed_idempotent(db_session: AsyncSession) -> None:
     assert all(loc.is_active for loc in locations)
 
     country_count = await db_session.scalar(select(func.count()).select_from(Country))
-    assert country_count == 4
+    assert country_count == 5
