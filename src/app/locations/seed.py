@@ -16,7 +16,7 @@ from app.database.models import Country, Location
 from app.domain.enums import CheckerType, LocationStatus
 from app.locations.markers import DEFAULT_PASPORT_MARKERS
 
-# MVP hubs: Prague, Warsaw, Berlin, Kraków, Valencia.
+# MVP hubs: Prague, Warsaw, Berlin, Kraków, Gdańsk, Valencia.
 MVP_COUNTRIES: list[dict[str, Any]] = [
     {"code": "CZ", "name": "Чехія", "sort_order": 10},
     {"code": "PL", "name": "Польща", "sort_order": 20},
@@ -66,6 +66,17 @@ MVP_LOCATIONS: list[dict[str, Any]] = [
         "timezone": "Europe/Warsaw",
         "official_url": "https://krakow.pasport.org.ua/",
         "queue_url": "https://krakow.pasport.org.ua/solutions/e-queue",
+        "is_active": True,
+        "checker_type": CheckerType.BROWSER.value,
+    },
+    {
+        "country_code": "PL",
+        "slug": "gdansk",
+        "city": "Gdańsk",
+        "display_name": "Гданськ",
+        "timezone": "Europe/Warsaw",
+        "official_url": "https://gdansk.pasport.org.ua/",
+        "queue_url": "https://gdansk.pasport.org.ua/solutions/e-queue",
         "is_active": True,
         "checker_type": CheckerType.BROWSER.value,
     },
