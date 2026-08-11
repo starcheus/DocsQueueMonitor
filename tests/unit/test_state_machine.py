@@ -7,8 +7,8 @@ from app.domain.enums import CheckerType, CheckOutcome, LocationStatus
 from app.monitoring.state_machine import AvailabilityStateMachine
 
 
-def _result(outcome: CheckOutcome) -> CheckResult:
-    return CheckResult(outcome=outcome, checker_type=CheckerType.BROWSER, reason="test")
+def _result(outcome: CheckOutcome, *, reason: str = "test") -> CheckResult:
+    return CheckResult(outcome=outcome, checker_type=CheckerType.BROWSER, reason=reason)
 
 
 def test_no_slots_to_possibly_no_notify() -> None:
@@ -89,3 +89,17 @@ def test_network_error_increments_failures() -> None:
     assert decision.new_status == LocationStatus.ERROR
     assert decision.consecutive_failed_checks == 5
     assert decision.should_alert_admin is True
+
+
+def test_http_429_keeps_current_status_without_failure_growth() -> None:
+    sm = AvailabilityStateMachine(availability_confirmations=1)
+    decision = sm.transition(
+        current_status=LocationStatus.NO_SLOTS,
+        consecutive_available_checks=0,
+        consecutive_failed_checks=3,
+        result=_result(CheckOutcome.PAGE_UNAVAILABLE, reason="http_429_rate_limited"),
+        armed_from_no_slots=True,
+    )
+    assert decision.new_status == LocationStatus.NO_SLOTS
+    assert decision.consecutive_failed_checks == 3
+    assert decision.should_alert_admin is False

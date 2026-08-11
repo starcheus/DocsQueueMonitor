@@ -49,6 +49,19 @@ class AvailabilityStateMachine:
         The monitoring service owns persistence of that flag (via previous_status
         / consecutive counters); this method is pure.
         """
+        if result.reason == "http_429_rate_limited":
+            # Temporary CF throttling: preserve last known status and avoid
+            # escalating failures/admin alerts on repeated 429s.
+            return TransitionDecision(
+                new_status=current_status,
+                previous_status=current_status,
+                should_notify_subscribers=False,
+                should_alert_admin=False,
+                consecutive_available_checks=consecutive_available_checks,
+                consecutive_failed_checks=consecutive_failed_checks,
+                reason=result.reason,
+            )
+
         if result.outcome in _FAILURE_OUTCOMES:
             return TransitionDecision(
                 new_status=LocationStatus.ERROR,
