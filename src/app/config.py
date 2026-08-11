@@ -38,6 +38,12 @@ class Settings(BaseSettings):
         alias="UNSUBSCRIBED_CHECK_INTERVAL_SECONDS",
         ge=60,
     )
+    # Cooldown after Cloudflare/HTTP 429 before probing same location again.
+    rate_limit_backoff_seconds: int = Field(
+        default=300,
+        alias="RATE_LIMIT_BACKOFF_SECONDS",
+        ge=0,
+    )
     request_timeout_seconds: float = Field(default=90.0, alias="REQUEST_TIMEOUT_SECONDS", gt=0)
     max_concurrent_checks: int = Field(default=2, alias="MAX_CONCURRENT_CHECKS", ge=1)
     notification_cooldown_seconds: int = Field(

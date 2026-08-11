@@ -22,12 +22,12 @@ def should_check_location(
     *,
     has_subscribers: bool,
     last_checked_at: datetime | None,
+    last_error: str | None = None,
     now: datetime,
     unsubscribed_interval_seconds: int,
+    rate_limit_backoff_seconds: int = 0,
 ) -> bool:
     """Subscribed cities every cycle; others at most once per idle interval."""
-    if has_subscribers:
-        return True
     if last_checked_at is None:
         return True
     checked = (
@@ -35,7 +35,16 @@ def should_check_location(
         if last_checked_at.tzinfo is not None
         else last_checked_at.replace(tzinfo=UTC)
     )
-    return (now - checked).total_seconds() >= unsubscribed_interval_seconds
+    elapsed = (now - checked).total_seconds()
+    if (
+        rate_limit_backoff_seconds > 0
+        and last_error == "http_429_rate_limited"
+        and elapsed < rate_limit_backoff_seconds
+    ):
+        return False
+    if has_subscribers:
+        return True
+    return elapsed >= unsubscribed_interval_seconds
 
 
 class MonitoringService:
@@ -160,8 +169,10 @@ class MonitoringService:
                 if should_check_location(
                     has_subscribers=loc.id in subscribed,
                     last_checked_at=loc.last_checked_at,
+                    last_error=loc.last_error,
                     now=now,
                     unsubscribed_interval_seconds=idle,
+                    rate_limit_backoff_seconds=self._settings.rate_limit_backoff_seconds,
                 )
             ]
             log.info(

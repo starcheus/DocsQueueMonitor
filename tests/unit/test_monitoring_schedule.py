@@ -59,3 +59,35 @@ def test_never_checked_unsubscribed_is_checked() -> None:
         )
         is True
     )
+
+
+def test_subscribed_rate_limited_skipped_during_backoff() -> None:
+    now = datetime(2026, 8, 7, 12, 0, tzinfo=UTC)
+    recent = now - timedelta(seconds=120)
+    assert (
+        should_check_location(
+            has_subscribers=True,
+            last_checked_at=recent,
+            last_error="http_429_rate_limited",
+            now=now,
+            unsubscribed_interval_seconds=3600,
+            rate_limit_backoff_seconds=300,
+        )
+        is False
+    )
+
+
+def test_subscribed_rate_limited_checked_after_backoff() -> None:
+    now = datetime(2026, 8, 7, 12, 0, tzinfo=UTC)
+    old = now - timedelta(seconds=360)
+    assert (
+        should_check_location(
+            has_subscribers=True,
+            last_checked_at=old,
+            last_error="http_429_rate_limited",
+            now=now,
+            unsubscribed_interval_seconds=3600,
+            rate_limit_backoff_seconds=300,
+        )
+        is True
+    )
