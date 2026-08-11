@@ -82,15 +82,19 @@ class MonitoringService:
             if (
                 result.reason == "http_429_rate_limited"
                 and current == LocationStatus.ERROR
-                and location.previous_status in {
+            ):
+                if location.previous_status in {
                     LocationStatus.NO_SLOTS.value,
                     LocationStatus.POSSIBLY_AVAILABLE.value,
                     LocationStatus.AVAILABLE.value,
-                }
-            ):
-                # Recover from a previously latched ERROR: on transient 429,
-                # preserve the last non-error status instead of keeping ERROR.
-                current = LocationStatus(location.previous_status)
+                }:
+                    # Recover from a previously latched ERROR: on transient 429,
+                    # preserve the last non-error status instead of keeping ERROR.
+                    current = LocationStatus(location.previous_status)
+                else:
+                    # If history is already latched in ERROR, degrade to UNKNOWN
+                    # so temporary throttling is not shown as hard failure.
+                    current = LocationStatus.UNKNOWN
             armed = self._runtime.armed_from_no_slots.get(location.slug, False)
             if current == LocationStatus.NO_SLOTS:
                 armed = True
