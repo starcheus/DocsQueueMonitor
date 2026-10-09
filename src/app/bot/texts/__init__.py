@@ -22,8 +22,19 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "menu.status": "📊 Статус міст",
         "menu.language": "🌍 Мова",
         "menu.how": "ℹ️ Як це працює",
+        "menu.share": "📤 Поділитися ботом",
         "menu.privacy": "🔒 Конфіденційність",
         "menu.contact": "📩 Зв’язатися з розробником",
+        "share.body": (
+            "Поділіться ботом з друзями — він стежить за чергою ДП «Документ» "
+            "і повідомляє, коли місця, ймовірно, з’явилися.\n\n"
+            "Ваше посилання:\n{link}"
+        ),
+        "share.message": (
+            "Незалежний бот моніторингу черги ДП «Документ» за кордоном. "
+            "Повідомляє про можливі вільні місця і дає посилання на офіційний сайт."
+        ),
+        "share.btn_telegram": "📤 Надіслати в Telegram",
         "how.body": (
             "1. Оберіть країну та міста.\n"
             "2. Підпишіться на моніторинг.\n"
@@ -101,8 +112,19 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "menu.status": "📊 Статус городов",
         "menu.language": "🌍 Язык",
         "menu.how": "ℹ️ Как это работает",
+        "menu.share": "📤 Поделиться ботом",
         "menu.privacy": "🔒 Конфиденциальность",
         "menu.contact": "📩 Связаться с разработчиком",
+        "share.body": (
+            "Поделитесь ботом с друзьями — он следит за очередью ГП «Документ» "
+            "и сообщает, когда места, вероятно, появились.\n\n"
+            "Ваша ссылка:\n{link}"
+        ),
+        "share.message": (
+            "Независимый бот мониторинга очереди ГП «Документ» за границей. "
+            "Сообщает о возможных свободных местах и даёт ссылку на официальный сайт."
+        ),
+        "share.btn_telegram": "📤 Отправить в Telegram",
         "how.body": (
             "1. Выберите страну и города.\n"
             "2. Подпишитесь на мониторинг.\n"
@@ -180,8 +202,19 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "menu.status": "📊 City status",
         "menu.language": "🌍 Language",
         "menu.how": "ℹ️ How it works",
+        "menu.share": "📤 Share the bot",
         "menu.privacy": "🔒 Privacy",
         "menu.contact": "📩 Contact developer",
+        "share.body": (
+            "Share the bot with friends — it watches DP “Dokument” e-queues "
+            "and notifies when slots may appear.\n\n"
+            "Your link:\n{link}"
+        ),
+        "share.message": (
+            "Independent bot that monitors DP “Dokument” foreign e-queues. "
+            "It notifies about possible free slots and links to the official site."
+        ),
+        "share.btn_telegram": "📤 Share via Telegram",
         "how.body": (
             "1. Choose a country and cities.\n"
             "2. Subscribe to monitoring.\n"

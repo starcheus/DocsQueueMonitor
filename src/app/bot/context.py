@@ -17,3 +17,4 @@ class AppContext:
     notifications: NotificationService
     runtime: MonitoringRuntimeState
     developer_contact: str = "@cryptoaiexchange"
+    bot_username: str = "Docs_Queue_Monitor_bot"

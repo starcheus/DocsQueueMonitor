@@ -56,6 +56,8 @@ async def run_bot() -> int:
         token=settings.telegram_bot_token,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
+    me = await bot.get_me()
+    bot_username = me.username or "Docs_Queue_Monitor_bot"
     dp = Dispatcher()
 
     notify_queue = NotificationQueue(
@@ -110,6 +112,7 @@ async def run_bot() -> int:
         notifications=notifications,
         runtime=runtime,
         developer_contact="@cryptoaiexchange",
+        bot_username=bot_username,
     )
     dp["app"] = app_ctx
     dp.update.middleware(DbSessionMiddleware(session_factory))

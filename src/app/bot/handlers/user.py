@@ -5,7 +5,7 @@ from __future__ import annotations
 from html import escape
 
 from aiogram import F, Router
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandObject, CommandStart
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,8 +20,10 @@ from app.bot.keyboards import (
     language_keyboard,
     main_menu_keyboard,
     privacy_keyboard,
+    share_keyboard,
     subscriptions_keyboard,
 )
+from app.bot.share import invite_bot_link, parse_invite_payload, telegram_share_url
 from app.bot.texts import resolve_language, t
 from app.bot.timefmt import format_user_datetime
 from app.database.models import Country, Location
@@ -38,17 +40,40 @@ def _callback_message(callback: CallbackQuery) -> Message | None:
     return None
 
 
+async def _send_share(message: Message, *, lang: str, telegram_id: int, app: AppContext) -> None:
+    link = invite_bot_link(app.bot_username, telegram_id)
+    share_url = telegram_share_url(
+        bot_username=app.bot_username,
+        referrer_telegram_id=telegram_id,
+        text=t(lang, "share.message"),
+    )
+    await message.answer(
+        t(lang, "share.body", link=link),
+        reply_markup=share_keyboard(lang, share_url=share_url),
+        disable_web_page_preview=True,
+    )
+
+
 @router.message(CommandStart())
-async def cmd_start(message: Message, session: AsyncSession, app: AppContext) -> None:
+async def cmd_start(
+    message: Message,
+    session: AsyncSession,
+    app: AppContext,
+    command: CommandObject,
+) -> None:
     assert message.from_user is not None
     service = SubscriptionService(session)
     lang = resolve_language(message.from_user.language_code)
+    referrer_id = parse_invite_payload(command.args)
+    source = "telegram"
+    if referrer_id is not None and referrer_id != message.from_user.id:
+        source = f"ref:{referrer_id}"
     user = await service.ensure_user(
         telegram_id=message.from_user.id,
         username=message.from_user.username,
         first_name=message.from_user.first_name,
         language_code=lang,
-        source="telegram",
+        source=source,
     )
     await message.answer(t(user.language_code, "start.welcome"))
     await message.answer(
@@ -105,6 +130,7 @@ async def on_menu_text(message: Message, session: AsyncSession, app: AppContext)
             "menu.status",
             "menu.language",
             "menu.how",
+            "menu.share",
             "menu.privacy",
             "menu.contact",
         ]
@@ -138,6 +164,10 @@ async def on_menu_text(message: Message, session: AsyncSession, app: AppContext)
 
     if text in all_labels["menu.how"]:
         await message.answer(f"{t(lang, 'how.body')}\n\n{t(lang, 'disclaimer.short')}")
+        return
+
+    if text in all_labels["menu.share"]:
+        await _send_share(message, lang=lang, telegram_id=message.from_user.id, app=app)
         return
 
     if text in all_labels["menu.privacy"]:

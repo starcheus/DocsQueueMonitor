@@ -38,11 +38,27 @@ def main_menu_keyboard(lang: str) -> ReplyKeyboardMarkup:
                 KeyboardButton(text=t(lang, "menu.how")),
             ],
             [
-                KeyboardButton(text=t(lang, "menu.privacy")),
+                KeyboardButton(text=t(lang, "menu.share")),
                 KeyboardButton(text=t(lang, "menu.contact")),
+            ],
+            [
+                KeyboardButton(text=t(lang, "menu.privacy")),
             ],
         ],
         resize_keyboard=True,
+    )
+
+
+def share_keyboard(lang: str, *, share_url: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=t(lang, "share.btn_telegram"),
+                    url=share_url,
+                ),
+            ],
+        ],
     )
 
 
