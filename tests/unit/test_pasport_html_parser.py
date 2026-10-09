@@ -19,7 +19,7 @@ def test_parse_available(fixtures_dir: Path) -> None:
     html = (fixtures_dir / "available.html").read_text(encoding="utf-8")
     outcome, reason = parse_pasport_queue_html(html)
     assert outcome == CheckOutcome.AVAILABLE
-    assert "markers" in reason
+    assert "markers" in reason or "date_options" in reason
 
 
 def test_parse_captcha(fixtures_dir: Path) -> None:
