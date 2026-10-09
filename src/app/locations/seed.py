@@ -136,11 +136,22 @@ async def seed_countries_and_locations(session: AsyncSession) -> dict[str, int]:
             existing.is_active = True
             code_to_country[payload["code"]] = existing
 
+    locations_updated = 0
     for payload in MVP_LOCATIONS:
         existing = await session.scalar(
             select(Location).where(Location.slug == payload["slug"]),
         )
         if existing is not None:
+            # Keep URLs/active flags in sync and refresh marker config used by checkers.
+            existing.city = payload["city"]
+            existing.display_name = payload["display_name"]
+            existing.timezone = payload["timezone"]
+            existing.official_url = payload["official_url"]
+            existing.queue_url = payload["queue_url"]
+            existing.checker_type = payload["checker_type"]
+            existing.checker_config = dict(DEFAULT_PASPORT_MARKERS)
+            existing.is_active = payload["is_active"]
+            locations_updated += 1
             continue
         country = code_to_country[payload["country_code"]]
         location = Location(
@@ -164,4 +175,5 @@ async def seed_countries_and_locations(session: AsyncSession) -> dict[str, int]:
     return {
         "countries_created": countries_created,
         "locations_created": locations_created,
+        "locations_updated": locations_updated,
     }

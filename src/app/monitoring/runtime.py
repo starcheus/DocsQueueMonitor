@@ -14,3 +14,5 @@ class MonitoringRuntimeState:
     cycles_completed: int = 0
     # slug -> armed_from_no_slots
     armed_from_no_slots: dict[str, bool] = field(default_factory=dict)
+    # Global Cloudflare throttle: skip all checks until this UTC time.
+    rate_limited_until: datetime | None = None

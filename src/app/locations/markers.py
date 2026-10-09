@@ -10,14 +10,17 @@ DEFAULT_PASPORT_MARKERS: dict[str, Any] = {
         "все места заняты",
         "all slots are taken",
         "Вибачте, на даний момент всі місця зайняті",
+        "Вільні слоти з'являються у довільний час",
+        # Note: do NOT add Alpine's hidden default
+        # "На даний момент відсутні місця..." — it is always present in DOM.
     ],
+    # Post-service-select signals only. Presence of the service form alone is NOT
+    # availability — slots are confirmed only after choosing a service.
     "available_markers": [
-        "Оберіть послугу",
-        "Выберите услугу",
-        "Select a service",
-        "form_queue",
-        'name="services"',
-        'id="countries_phone"',
+        "Обрати день",
+        "Выберите день",
+        "Обрати час",
+        "Выберите время",
     ],
     "captcha_markers": [
         "hcaptcha",
@@ -25,5 +28,12 @@ DEFAULT_PASPORT_MARKERS: dict[str, Any] = {
         "Just a moment",
         "Attention Required",
     ],
-    "source": "official-ui-2026-08-06",
+    "service_option_patterns": [
+        "паспорт",
+        "ID-карт",
+        "id-карт",
+        "passport",
+    ],
+    "select_service_before_check": True,
+    "source": "official-ui-2026-10-05",
 }

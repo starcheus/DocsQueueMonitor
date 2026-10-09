@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -140,9 +141,27 @@ class MonitoringService:
             location.consecutive_available_checks = decision.consecutive_available_checks
             location.consecutive_failed_checks = decision.consecutive_failed_checks
             location.last_checked_at = now
-            location.last_error = (
-                decision.reason if decision.new_status == LocationStatus.ERROR else None
-            )
+            if result.reason == "http_429_rate_limited":
+                # Keep cooldown signal even when status is preserved on 429.
+                location.last_error = "http_429_rate_limited"
+                backoff = self._settings.rate_limit_backoff_seconds
+                if backoff > 0:
+                    from datetime import timedelta
+
+                    until = now + timedelta(seconds=backoff)
+                    prev = self._runtime.rate_limited_until
+                    if prev is None or until > prev:
+                        self._runtime.rate_limited_until = until
+                        log.warning(
+                            "global_rate_limit_backoff",
+                            slug=location.slug,
+                            until=until.isoformat(),
+                            backoff_seconds=backoff,
+                        )
+            elif decision.new_status == LocationStatus.ERROR:
+                location.last_error = decision.reason
+            else:
+                location.last_error = None
             if decision.new_status not in {LocationStatus.ERROR, LocationStatus.UNKNOWN}:
                 location.last_success_at = now
                 self._runtime.last_successful_check_at = now
@@ -150,6 +169,9 @@ class MonitoringService:
                 location.last_status_changed_at = now
             if decision.new_status == LocationStatus.AVAILABLE:
                 location.last_available_at = now
+                dates = result.details.get("available_dates") if result.details else None
+                if isinstance(dates, list) and dates:
+                    location.last_available_dates = [str(item) for item in dates]
 
             await session.commit()
 
@@ -174,13 +196,31 @@ class MonitoringService:
 
     async def check_all_active(self) -> int:
         now = datetime.now(UTC)
+        limited_until = self._runtime.rate_limited_until
+        if limited_until is not None:
+            until = (
+                limited_until
+                if limited_until.tzinfo is not None
+                else limited_until.replace(tzinfo=UTC)
+            )
+            if now < until:
+                remaining = int((until - now).total_seconds())
+                log.info(
+                    "monitoring_cycle_skipped_rate_limit",
+                    remaining_seconds=remaining,
+                    until=until.isoformat(),
+                )
+                return 0
+            self._runtime.rate_limited_until = None
+
         async with self._session_factory() as session:
             repo = LocationRepository(session)
             locations = await repo.list_active()
             subscribed = await repo.list_location_ids_with_active_subscribers()
             idle = self._settings.unsubscribed_check_interval_seconds
-            ids = [
-                loc.id
+            # Prefer subscribed cities first so Prague is checked before idle probes.
+            due = [
+                loc
                 for loc in locations
                 if should_check_location(
                     has_subscribers=loc.id in subscribed,
@@ -191,6 +231,8 @@ class MonitoringService:
                     rate_limit_backoff_seconds=self._settings.rate_limit_backoff_seconds,
                 )
             ]
+            due.sort(key=lambda loc: (0 if loc.id in subscribed else 1, loc.id))
+            ids = [loc.id for loc in due]
             log.info(
                 "monitoring_cycle_plan",
                 total_active=len(locations),
@@ -198,8 +240,33 @@ class MonitoringService:
                 subscribed=len(subscribed),
             )
 
-        for location_id in ids:
-            await self.check_location(location_id)
+        delay = self._settings.inter_check_delay_seconds
+        for index, location_id in enumerate(ids):
+            if index > 0 and delay > 0:
+                # Abort remaining cities if a previous check armed global backoff.
+                limited_until = self._runtime.rate_limited_until
+                if limited_until is not None:
+                    until = (
+                        limited_until
+                        if limited_until.tzinfo is not None
+                        else limited_until.replace(tzinfo=UTC)
+                    )
+                    if datetime.now(UTC) < until:
+                        log.info(
+                            "monitoring_cycle_aborted_rate_limit",
+                            checked=index,
+                            remaining=len(ids) - index,
+                        )
+                        break
+                await asyncio.sleep(delay)
+            try:
+                await self.check_location(location_id)
+            except Exception as exc:
+                log.error(
+                    "location_check_failed",
+                    location_id=location_id,
+                    error=repr(exc),
+                )
         return len(ids)
 
     def _cooldown_allows(self, location_id: int, now: datetime) -> bool:

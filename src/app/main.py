@@ -19,6 +19,7 @@ from app.bot.context import AppContext
 from app.bot.handlers.user import router as user_router
 from app.bot.middlewares.db import DbSessionMiddleware
 from app.config import get_settings
+from app.database.schema import ensure_runtime_schema
 from app.database.session import create_engine, create_session_factory
 from app.health.server import start_health_server, stop_health_server
 from app.locations.seed import seed_countries_and_locations
@@ -44,6 +45,7 @@ async def run_bot() -> int:
         return 1
 
     engine = create_engine(settings)
+    await ensure_runtime_schema(engine)
     session_factory = create_session_factory(engine)
 
     async with session_factory() as session:
@@ -75,6 +77,7 @@ async def run_bot() -> int:
         enabled=settings.playwright_enabled,
         timeout_seconds=settings.request_timeout_seconds,
         user_agent=settings.user_agent,
+        headless=settings.playwright_headless,
     )
     http_client = httpx.AsyncClient()
     html_checker = HtmlAvailabilityChecker(

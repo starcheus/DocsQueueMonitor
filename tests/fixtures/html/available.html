@@ -3,9 +3,18 @@
 <head><title>Електронна черга — fixture available</title></head>
 <body>
   <h1>Електронна черга за адресою Прага</h1>
-  <form name="services" id="queue-form">
-    <label>Оберіть послугу</label>
-    <select name="service"><option>Закордонний паспорт</option></select>
+  <form name="services" id="services">
+    <label>Послуга</label>
+    <select name="service" id="service">
+      <option value="">- Обрати -</option>
+      <option value="4" selected>Закордонний паспорт та (або) ID-картка</option>
+    </select>
+    <label>Обрати день</label>
+    <select name="date" id="date">
+      <option value="">- Обрати -</option>
+      <option value="2026-10-10">10.10.2026</option>
+      <option value="2026-10-11">11.10.2026</option>
+    </select>
     <input id="countries_phone" type="hidden" value="{}" />
   </form>
 </body>

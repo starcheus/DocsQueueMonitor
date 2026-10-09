@@ -74,8 +74,10 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "status.item": (
             "{city}: {status}\n"
             "Перевірено: {checked}\n"
-            "Останні місця: {available}"
+            "Останні місця: {available}\n"
+            "Дати: {dates}"
         ),
+        "status.dates_none": "немає даних",
         "status.empty": "Спочатку підпишіться на міста.",
         "status.unknown": "невідомо",
         "status.no_slots": "місць немає",
@@ -87,7 +89,8 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
             "🚨 Можливо, з’явилися вільні місця\n\n"
             "📍 {city}, {country}\n"
             "🕒 Перевірено: {checked_at}\n"
-            "✅ Наявність підтверджено кількома перевірками\n\n"
+            "📅 Доступні дати: {dates}\n"
+            "✅ Наявність підтверджено перевіркою\n\n"
             "Місця можуть швидко закінчитися. Перейдіть на офіційний сайт "
             "і перевірте доступність самостійно."
         ),
@@ -164,8 +167,10 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "status.item": (
             "{city}: {status}\n"
             "Проверено: {checked}\n"
-            "Последние места: {available}"
+            "Последние места: {available}\n"
+            "Даты: {dates}"
         ),
+        "status.dates_none": "нет данных",
         "status.empty": "Сначала подпишитесь на города.",
         "status.unknown": "неизвестно",
         "status.no_slots": "мест нет",
@@ -177,7 +182,8 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
             "🚨 Возможно, появились свободные места\n\n"
             "📍 {city}, {country}\n"
             "🕒 Проверено: {checked_at}\n"
-            "✅ Наличие подтверждено несколькими проверками\n\n"
+            "📅 Доступные даты: {dates}\n"
+            "✅ Наличие подтверждено проверкой\n\n"
             "Места могут быстро закончиться. Перейдите на официальный сайт "
             "и проверьте доступность самостоятельно."
         ),
@@ -254,8 +260,10 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "status.item": (
             "{city}: {status}\n"
             "Checked: {checked}\n"
-            "Last available: {available}"
+            "Last available: {available}\n"
+            "Dates: {dates}"
         ),
+        "status.dates_none": "no data",
         "status.empty": "Subscribe to cities first.",
         "status.unknown": "unknown",
         "status.no_slots": "no slots",
@@ -267,7 +275,8 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
             "🚨 Free slots may have appeared\n\n"
             "📍 {city}, {country}\n"
             "🕒 Checked: {checked_at}\n"
-            "✅ Availability confirmed by multiple checks\n\n"
+            "📅 Available dates: {dates}\n"
+            "✅ Availability confirmed by check\n\n"
             "Slots can disappear quickly. Open the official site and verify yourself."
         ),
         "notify.btn_open_site": "🔗 Open official site",

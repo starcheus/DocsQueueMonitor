@@ -120,6 +120,8 @@ class Location(Base):
         DateTime(timezone=True),
         nullable=True,
     )
+    # Human-readable date labels from the last AVAILABLE check (e.g. ["10.10.2026"]).
+    last_available_dates: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
     last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

@@ -53,12 +53,20 @@ class NotificationService:
                     lang=lang,
                     with_date=False,
                 )
+                dates = location.last_available_dates or []
+                if isinstance(dates, list) and dates:
+                    dates_line = ", ".join(str(item) for item in dates[:12])
+                    if len(dates) > 12:
+                        dates_line += f" (+{len(dates) - 12})"
+                else:
+                    dates_line = t(lang, "status.dates_none")
                 text = t(
                     lang,
                     "notify.slots_available",
                     city=location.display_name,
                     country=location.country.name if location.country else "",
                     checked_at=checked,
+                    dates=dates_line,
                 )
                 payloads.append((user.id, user.telegram_id, lang, text))
 

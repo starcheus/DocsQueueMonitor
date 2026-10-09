@@ -546,6 +546,13 @@ def _format_status_item(lang: str, location: Location) -> str:
     status_key = f"status.{status.value}"
     checked = format_user_datetime(location.last_checked_at, lang=lang)
     available = format_user_datetime(location.last_available_at, lang=lang)
+    raw_dates = location.last_available_dates or []
+    if isinstance(raw_dates, list) and raw_dates:
+        dates = ", ".join(str(item) for item in raw_dates[:12])
+        if len(raw_dates) > 12:
+            dates += f" (+{len(raw_dates) - 12})"
+    else:
+        dates = t(lang, "status.dates_none")
     label = escape(t(lang, status_key))
     status_link = (
         f'{_status_icon(status)} <a href="{escape(location.queue_url, quote=True)}">'
@@ -558,4 +565,5 @@ def _format_status_item(lang: str, location: Location) -> str:
         status=status_link,
         checked=escape(checked),
         available=escape(available),
+        dates=escape(dates),
     )

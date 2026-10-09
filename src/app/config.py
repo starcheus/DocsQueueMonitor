@@ -40,8 +40,14 @@ class Settings(BaseSettings):
     )
     # Cooldown after Cloudflare/HTTP 429 before probing same location again.
     rate_limit_backoff_seconds: int = Field(
-        default=300,
+        default=900,
         alias="RATE_LIMIT_BACKOFF_SECONDS",
+        ge=0,
+    )
+    # Pause between cities inside one cycle to avoid CF burst from same IP.
+    inter_check_delay_seconds: float = Field(
+        default=12.0,
+        alias="INTER_CHECK_DELAY_SECONDS",
         ge=0,
     )
     request_timeout_seconds: float = Field(default=90.0, alias="REQUEST_TIMEOUT_SECONDS", gt=0)
@@ -58,10 +64,12 @@ class Settings(BaseSettings):
     data_retention_days: int = Field(default=0, alias="DATA_RETENTION_DAYS", ge=0)
     healthcheck_port: int = Field(default=8080, alias="HEALTHCHECK_PORT", ge=1, le=65535)
     playwright_enabled: bool = Field(default=True, alias="PLAYWRIGHT_ENABLED")
+    # Headless Chromium is blocked by Cloudflare on getDays POST; use xvfb + headed.
+    playwright_headless: bool = Field(default=False, alias="PLAYWRIGHT_HEADLESS")
     user_agent: str = Field(
         default=(
-            "Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 "
-            "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36"
         ),
         alias="USER_AGENT",
     )

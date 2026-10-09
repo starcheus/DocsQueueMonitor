@@ -22,6 +22,17 @@ def hash_normalized_html(html: str) -> str:
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
+def _has_real_date_options(soup: BeautifulSoup) -> bool:
+    select = soup.select_one('select#date, select[name="date"]')
+    if select is None:
+        return False
+    for option in select.find_all("option"):
+        value = (option.get("value") or "").strip()
+        if value:
+            return True
+    return False
+
+
 def parse_pasport_queue_html(
     html: str,
     *,
@@ -30,13 +41,15 @@ def parse_pasport_queue_html(
     """Classify queue page HTML into a CheckOutcome.
 
     False AVAILABLE is worse than a miss: unknown/captcha/empty never become AVAILABLE.
+    Service-form presence alone is not availability — prefer real date options.
     """
     config = checker_config or {}
     if not html or not html.strip():
         return CheckOutcome.EMPTY_RESPONSE, "empty_body"
 
     lower = html.lower()
-    text = BeautifulSoup(html, "lxml").get_text(" ", strip=True)
+    soup = BeautifulSoup(html, "lxml")
+    text = soup.get_text(" ", strip=True)
 
     captcha_markers = config.get("captcha_markers") or [
         "hcaptcha",
@@ -53,10 +66,18 @@ def parse_pasport_queue_html(
             "все места заняты",
             "оберіть послугу",
             "выберите услугу",
+            "вибачте, на даний момент",
         )
     ) or any(
         token in lower
-        for token in ('name="services"', "form_queue", 'id="queue_form"', 'id="countries_phone"')
+        for token in (
+            'name="services"',
+            "form_queue",
+            'id="queue_form"',
+            'id="countries_phone"',
+            'id="service"',
+            'name="service"',
+        )
     )
     if not has_queue_signal:
         challenge_bits = (
@@ -75,30 +96,42 @@ def parse_pasport_queue_html(
         "все места заняты",
         "all slots are taken",
         "Вибачте, на даний момент всі місця зайняті",
+        "Вільні слоти з'являються у довільний час",
     ]
     for marker in no_slots_markers:
         if marker.lower() in text.lower():
             return CheckOutcome.NO_SLOTS, f"marker:{marker}"
 
+    # Strongest available signal: date dropdown already has concrete day values.
+    if _has_real_date_options(soup):
+        return CheckOutcome.AVAILABLE, "date_options_present"
+
     available_markers = config.get("available_markers") or [
-        "Оберіть послугу",
-        "Выберите услугу",
-        "Select a service",
-        'name="services"',
-        'id="countries_phone"',
+        "Обрати день",
+        "Выберите день",
+        "Обрати час",
+        "Выберите время",
     ]
     hits = [
         marker
         for marker in available_markers
         if marker.lower() in lower or marker.lower() in text.lower()
     ]
+    # "Обрати день" can appear after service select even with zero dates.
+    # Without concrete option values this is only a weak signal.
+    if hits and _has_real_date_options(soup):
+        return CheckOutcome.AVAILABLE, f"markers:{','.join(hits[:3])}"
     if hits:
-        # Single marker hit → possibly; strong combination → available signal for SM confirmation.
-        if len(hits) >= 2 or any(
-            "services" in h.lower() or "countries_phone" in h.lower() for h in hits
-        ):
-            return CheckOutcome.AVAILABLE, f"markers:{','.join(hits[:3])}"
         return CheckOutcome.POSSIBLY_AVAILABLE, f"markers:{','.join(hits[:3])}"
+
+    # Service form visible but no post-select date signal yet.
+    if (
+        'name="service"' in lower
+        or 'id="service"' in lower
+        or "оберіть послугу" in text.lower()
+        or "выберите услугу" in text.lower()
+    ):
+        return CheckOutcome.UNKNOWN, "service_form_without_date_options"
 
     # Page loaded but neither no-slots nor booking form — structure may have changed.
     if "електронна черга" in text.lower() or "электронная очередь" in text.lower():
